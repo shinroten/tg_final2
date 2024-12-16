@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: lecbotdb
+    ports:
+      - "5438:5432"
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:root@db/lecbotdb
+      API_TOKEN: '7322252895:AAHAJRgiVKBoZkaUd5tDH_DpU9w8kSWBCBo'
+      SSH_HOST: '176.124.211.185'
+      SSH_PORT: '22'
+      SSH_USER: 'root'
+      SSH_PASS: 'dd.qRRje6ecS8-'
