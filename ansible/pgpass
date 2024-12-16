@@ -1,0 +1,3 @@
+
+# hostname:port:database:username:password
+<MASTER_IP>:5432:*:repl_user:your_password

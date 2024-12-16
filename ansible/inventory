@@ -1,0 +1,5 @@
+[database]
+db_host ansible_host=176.124.211.185 ansible_user=root
+
+[bot]
+bot_host ansible_host=176.124.211.186 ansible_user=root
