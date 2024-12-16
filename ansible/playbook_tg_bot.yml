@@ -1,0 +1,63 @@
+---
+- name: Deploy PostgreSQL and Telegram Bot
+  hosts: database
+  become: yes
+  tasks:
+    - name: Install PostgreSQL
+      apt:
+        name: postgresql
+        state: present
+
+    - name: Configure PostgreSQL for replication
+      lineinfile:
+        path: /etc/postgresql/12/main/postgresql.conf
+        regexp: '^{{ item.key }}'
+        line: '{{ item.key }} = {{ item.value }}'
+      loop:
+        - { key: "wal_level", value: "replica" }
+        - { key: "max_wal_senders", value: "5" }
+        - { key: "hot_standby", value: "on" }
+
+    - name: Update pg_hba.conf for replication
+      lineinfile:
+        path: /etc/postgresql/12/main/pg_hba.conf
+        line: "host    replication     all             {{ ansible_host }}/32            md5"
+        state: present
+
+    - name: Restart PostgreSQL service
+      service:
+        name: postgresql
+        state: restarted
+
+    - name: Create replication user
+      postgresql_user:
+        name: repl_user
+        password: repl_password
+        role_attr_flags: REPLICATION
+
+- name: Download Telegram Bot code from GitHub and install dependencies
+  hosts: bot
+  become: yes
+  tasks:
+    - name: Clone the Telegram bot repository
+      git:
+        repo: 'https://github.com/shinroten/tg_bot'
+        dest: /opt/tg_bot
+
+    - name: Install required packages
+      apt:
+        name:
+          - python3-pip
+          - python3-venv
+        state: present
+
+    - name: Setup virtual environment and install requirements
+      shell: |
+        cd /opt/tg_bot
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+
+    - name: Start the Telegram bot (example command)
+      shell: |
+        cd /opt/tg_bot/venv/bin && ./python main.py &
